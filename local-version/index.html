@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-AI Studio</title>
+<style>
+:root{--bg:#1e1e1e;--sb:#181818;--ag:#1b1b1b;--bd:#2b2b2b;--tx:#cccccc;--mu:#8b8b8b;--ac:#3794ff;--sel:#37373d;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:grid;grid-template-rows:34px 1fr 22px;background:var(--bg);color:var(--tx);font:13px/1.5 'Segoe UI',system-ui,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:1px solid var(--ac)}
+#top{display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--sb);border-bottom:1px solid var(--bd)}
+#top .lg{width:20px;height:20px;border-radius:5px;background:var(--ac);color:#fff;font-weight:700;display:grid;place-items:center}
+#top nav{display:flex;gap:2px}
+#top nav button{background:none;border:0;padding:3px 9px;border-radius:4px}
+#top nav button:hover{background:var(--sel)}
+#title{flex:1;text-align:center;color:var(--mu)}
+#app{display:grid;grid-template-columns:var(--ew,240px) 1fr var(--aw,380px);min-height:0}
+#app.noag{grid-template-columns:var(--ew,240px) 1fr}
+#app.noag #ag{display:none}
+#exp,#mid,#ag{position:relative;min-height:0;min-width:0;display:flex;flex-direction:column}
+#exp{background:var(--sb);border-right:1px solid var(--bd)}
+#ag{background:var(--ag);border-left:1px solid var(--bd)}
+h4{margin:0;padding:10px 14px;font-size:12px;font-weight:600;color:var(--tx)}
+#tree{flex:1;overflow:auto;padding-bottom:10px}
+#tree p{margin:12px 14px;color:var(--mu)}
+.tr{display:flex;align-items:center;gap:6px;padding:2px 8px;cursor:pointer;white-space:nowrap}
+.tr i{font-style:normal;width:18px;text-align:center;font-size:11px;color:var(--mu);flex:none}
+.tr:hover{background:#2a2d2e}.tr.on{background:var(--sel)}
+#tabs{display:flex;background:var(--sb);overflow-x:auto;min-height:35px}
+.tab{display:flex;align-items:center;gap:8px;padding:0 12px;cursor:pointer;color:var(--mu);border-right:1px solid var(--bd);border-top:1px solid transparent;white-space:nowrap}
+.tab.on{background:var(--bg);color:var(--tx);border-top-color:var(--ac)}
+.tab b{font-weight:400;width:16px;text-align:center;border-radius:3px}.tab b:hover{background:#3a3a3a}
+#crumb{padding:3px 16px;color:var(--mu);min-height:24px;font-size:12px}
+#editor{flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;background:var(--bg);font:13px/20px Consolas,'Cascadia Code',monospace}
+#gut{padding:0 14px 0 18px;text-align:right;color:#6e7681;white-space:pre;user-select:none;position:sticky;left:0;background:var(--bg);min-height:100%}
+#code{position:relative;flex:1 0 auto;min-height:100%}
+#hl,#ed{margin:0;padding:0 40px 0 0;font:inherit;white-space:pre;tab-size:2}
+#hl{color:#d4d4d4;min-height:100%}
+#ed{position:absolute;inset:0;width:100%;height:100%;background:none;border:0;outline:0;resize:none;color:transparent;caret-color:#fff;overflow:hidden}
+.c{color:#6a9955}.s{color:#ce9178}.k{color:#569cd6}.n{color:#b5cea8}.f{color:#dcdcaa}
+#panel{position:relative;height:var(--phh,190px);border-top:1px solid var(--bd);display:flex;flex-direction:column;background:var(--bg)}
+#panel.hide{display:none}
+.ph{display:flex;justify-content:space-between;padding:6px 14px}
+.ph span{border-bottom:1px solid var(--tx);padding-bottom:1px}
+.ph button{background:none;border:0;color:var(--mu)}
+#term,.pr{font:13px Consolas,monospace}
+#term{flex:1;margin:0;padding:2px 14px;overflow:auto;white-space:pre-wrap}
+.pr{display:flex;gap:6px;padding:4px 14px 8px}
+.pr span{white-space:nowrap;max-width:60%;overflow:hidden;text-overflow:ellipsis}
+.pr input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--tx);font:inherit}
+.ah{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bd)}
+#ctitle{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ah button{background:none;border:0;font-size:18px;color:var(--mu);line-height:1}
+#msgs{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:14px}
+.ub{align-self:flex-end;max-width:88%;background:#2a2a2a;padding:8px 12px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.am{white-space:pre-wrap;overflow-wrap:anywhere;color:#d4d4d4}
+.mu{color:var(--mu)}.err{color:#f48771}
+summary{cursor:pointer}
+.st{font:12px Consolas,monospace;padding:2px 0 2px 14px;overflow-wrap:anywhere}
+.card{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;border:1px solid var(--bd);border-radius:8px;padding:8px 12px;background:#202020}
+.card details{flex:1;min-width:0}
+.rev{background:#2a2a2a;border:1px solid var(--bd);border-radius:6px;padding:2px 10px}
+.cf{padding:3px 0;cursor:pointer;color:var(--mu);overflow-wrap:anywhere}.cf:hover{color:var(--tx)}
+.g{color:#4ec9b0;font-style:normal}.d{color:#f48771;font-style:normal}
+#box{margin:12px;border:1px solid var(--bd);border-radius:12px;background:#202020;padding:10px 12px}
+#q{width:100%;background:none;border:0;outline:0;resize:none;color:var(--tx);font:inherit;max-height:160px;display:block}
+.bar{display:flex;align-items:center;gap:6px;margin-top:6px;color:var(--mu);font-size:12px}
+.bar select,.bar input[type=text]{background:none;border:0;color:var(--mu);font:inherit;outline:0}
+.bar option{background:#202020}
+#model{max-width:120px}
+.bar{flex-wrap:wrap}
+.bar label{white-space:nowrap}
+.bar label{margin-left:auto;display:flex;align-items:center;gap:4px;cursor:pointer}
+#send{width:28px;height:28px;border-radius:50%;border:0;background:var(--ac);color:#fff;flex:none}
+.gv{position:absolute;top:0;bottom:0;right:-3px;width:7px;cursor:col-resize;z-index:5}
+.gv.l{right:auto;left:-3px}
+.gh{position:absolute;left:0;right:0;top:-3px;height:7px;cursor:row-resize;z-index:5}
+.gv:hover,.gh:hover{background:var(--ac);opacity:.5}
+body.dragging{user-select:none}
+body.dragging iframe{pointer-events:none}
+#sb{display:flex;align-items:center;background:var(--sb);border-top:1px solid var(--bd);font-size:12px;color:var(--mu)}
+#sb .chip{background:#0e639c;color:#fff;padding:0 12px;height:100%;display:flex;align-items:center}
+#sb span{padding:0 10px}#sb .sp{flex:1}
+dialog{width:min(520px,92vw);padding:0;background:var(--sb);color:var(--tx);border:1px solid var(--bd);border-radius:8px}
+dialog::backdrop{background:#000a}
+#dpath{overflow-wrap:anywhere}
+.row{display:flex;gap:6px;padding:8px}
+.row input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--bd);border-radius:4px;color:var(--tx);padding:5px 8px;font:inherit}
+.b{background:var(--ac);border:0;color:#fff;border-radius:4px;padding:5px 12px}
+.b.gh{background:var(--sel)}
+#dlist{max-height:300px;overflow:auto}
+#dlist div{padding:4px 14px;cursor:pointer}#dlist div:hover{background:var(--sel)}
+</style>
+
+<header id="top">
+  <span class="lg">A</span>
+  <nav>
+    <button onclick="openPicker()">Open Folder</button>
+    <button onclick="save()">Save</button>
+    <button onclick="$('panel').classList.toggle('hide')">Terminal</button>
+    <button onclick="$('app').classList.toggle('noag')">Agent</button>
+  </nav>
+  <div id="title">Multi-AI Studio</div>
+</header>
+
+<main id="app">
+  <aside id="exp"><h4>Explorer</h4><div id="tree"></div><div class="gv" id="g1"></div></aside>
+
+  <div id="mid">
+    <div id="tabs"></div>
+    <div id="crumb"></div>
+    <div id="editor"><div id="gut"></div><div id="code"><pre id="hl"></pre><textarea id="ed" spellcheck="false" wrap="off" aria-label="Code editor" disabled></textarea></div></div>
+    <div id="panel"><div class="gh" id="g3"></div>
+      <div class="ph"><span>Terminal</span><button onclick="$('panel').classList.add('hide')" aria-label="Close terminal">×</button></div>
+      <pre id="term"></pre>
+      <div class="pr"><span id="ps">PS&gt;</span><input id="cmd" aria-label="Terminal command" placeholder="type a command and press Enter"></div>
+    </div>
+  </div>
+
+  <aside id="ag"><div class="gv l" id="g2"></div>
+    <div class="ah"><span id="ctitle">New chat</span><button onclick="newChat()" aria-label="New chat" title="New chat">+</button></div>
+    <div id="msgs"></div>
+    <div id="box">
+      <textarea id="q" rows="1" placeholder="Ask anything…" oninput="fit()" aria-label="Message"></textarea>
+      <div class="bar">
+        <select id="prov" onchange="pick()" aria-label="Provider"><option value="claude">Claude</option><option value="gemini">Gemini</option><option value="openai">ChatGPT</option></select>
+        <select id="model" aria-label="Model"></select><select id="eff" aria-label="Effort" title="How hard Claude thinks (Claude only)"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="xhigh" selected>Extra</option><option value="max">Max</option></select>
+        <label title="Lets the AI run shell commands on your computer"><input type="checkbox" id="allow"> Run commands</label>
+        <button id="send" onclick="ask()" aria-label="Send">↑</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer id="sb"><span class="chip" id="sbroot">No folder</span><span class="sp"></span><span id="sbauto" style="cursor:pointer" title="Click to turn auto-save on or off" onclick="setAuto(!auto)"></span><span id="sbpos"></span><span>UTF-8</span><span id="sblang"></span></footer>
+
+<dialog id="dlg">
+  <h4 id="dpath">Choose a project folder</h4>
+  <div class="row"><input id="dinp" placeholder="Paste a folder path and press Go" aria-label="Folder path"><button class="b" onclick="go($('dinp').value)">Go</button></div>
+  <div id="dlist"></div>
+  <div class="row"><button class="b" onclick="choose()">Open this folder</button><button class="b gh" onclick="$('dlg').close()">Cancel</button></div>
+</dialog>
+
+<script>
+const $=i=>document.getElementById(i);
+const M={claude:[['Fable 5.2','claude-fable-5-2'],['Opus 5.5','claude-opus-5-5'],['Sonnet 5.5','claude-sonnet-5-5'],['Haiku 5.5','claude-haiku-5-5']],gemini:[['Gemini 2.5 Pro','gemini-2.5-pro'],['Gemini 2.5 Flash','gemini-2.5-flash']],openai:[['GPT-5','gpt-5'],['GPT-5 mini','gpt-5-mini']]};
+const EXT={js:['JS','#e5c07b'],jsx:['JS','#e5c07b'],mjs:['JS','#e5c07b'],ts:['TS','#4fc1ff'],tsx:['⚛','#4fc1ff'],json:['{}','#e5c07b'],css:['#','#569cd6'],html:['<>','#e06c4c'],md:['M↓','#6cb6ff'],py:['PY','#6fb3d2'],png:['▣','#c586c0'],jpg:['▣','#c586c0'],jpeg:['▣','#c586c0'],svg:['▣','#c586c0']};
+const api=(u,b)=>fetch(u,b&&{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+const ext=p=>p.split('.').pop().toLowerCase();
+const esc=t=>String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let tabs=[],act=-1,files=[],tog=new Map(),root='',hist=[],dcur='';
+
+/* syntax colours */
+const RX=/(\/\/.*|^\s*#.*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(const|let|var|function|return|if|else|for|while|import|from|export|default|async|await|new|class|try|catch|throw|switch|case|break|def|in|of|true|false|null|undefined|None|True|False)\b|\b(\d+\.?\d*)\b|(\w+)(?=\()/gm;
+const hl=t=>esc(t).replace(RX,(m,c,s,k,n)=>`<span class="${c?'c':s?'s':k?'k':n?'n':'f'}">${m}</span>`);
+
+/* editor */
+function paint(){const t=act<0?'':tabs[act].text;
+  $('hl').innerHTML=act<0?'<span class="c">Open a file from the Explorer, or ask the agent to build something.</span>':hl(t)+'\n';
+  $('gut').textContent=act<0?'':Array.from({length:t.split('\n').length},(_,i)=>i+1).join('\n')}
+function pos(){const e=$('ed'),v=e.value.slice(0,e.selectionStart).split('\n');
+  $('sbpos').textContent=act<0?'':`Ln ${v.length}, Col ${v[v.length-1].length+1}`;$('sblang').textContent=act<0?'':ext(tabs[act].path)}
+function bars(){$('tabs').innerHTML='';
+  tabs.forEach((t,i)=>{const d=document.createElement('div');d.className='tab'+(i===act?' on':'');
+    d.innerHTML=`<span>${esc(t.path.split(/[\\/]/).pop())}</span><b>${t.dirty?'●':'×'}</b>`;
+    d.onclick=()=>focus(i);d.querySelector('b').onclick=e=>{e.stopPropagation();closeTab(i)};$('tabs').append(d)});
+  $('crumb').textContent=act<0?'':tabs[act].path.split(/[\\/]/).join('  ›  ')}
+function focus(i){act=i;bars();$('ed').disabled=i<0;$('ed').value=i<0?'':tabs[i].text;paint();drawTree();pos()}
+async function openFile(p){let i=tabs.findIndex(t=>t.path===p);
+  if(i<0){const r=await api('/api/file?p='+encodeURIComponent(p));tabs.push({path:p,text:r.content??'',dirty:false});i=tabs.length-1}focus(i)}
+function closeTab(i){tabs.splice(i,1);focus(Math.min(act>i?act-1:act,tabs.length-1))}
+async function saveTab(t){await api('/api/file',{path:t.path,content:t.text});t.dirty=false;bars()}
+async function save(){if(act>=0)await saveTab(tabs[act])}
+let auto=localStorage.getItem('auto')!=='off';
+function setAuto(v){auto=v;localStorage.setItem('auto',v?'on':'off');$('sbauto').textContent='Auto Save: '+(v?'On':'Off')}
+$('ed').oninput=e=>{const t=tabs[act];t.text=e.target.value;t.dirty=true;bars();paint();pos();if(auto){clearTimeout(t.timer);t.timer=setTimeout(()=>saveTab(t),1000)}};
+$('ed').onkeyup=$('ed').onclick=pos;
+$('ed').onkeydown=e=>{if(e.key==='Tab'){e.preventDefault();document.execCommand('insertText',false,'  ')}};
+document.onkeydown=e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();save()}};
+
+/* explorer */
+function drawTree(){const t={},out=$('tree');
+  files.forEach(p=>{let n=t;p.split(/[\\/]/).forEach((s,i,a)=>{n=n[s]??={};if(i===a.length-1)n.__f=p})});
+  out.innerHTML=files.length?'':'<p>This folder has no files yet. Ask the agent to build something.</p>';
+  (function walk(n,d,pre){Object.keys(n).filter(k=>k!=='__f').sort((a,b)=>!!n[a].__f-!!n[b].__f||a.localeCompare(b)).forEach(k=>{
+    const c=n[k],id=pre+'/'+k,r=document.createElement('div');r.className='tr';r.style.paddingLeft=(8+d*12)+'px';
+    if(c.__f){const [ic,col]=EXT[ext(k)]||['≡','#8b8b8b'];r.innerHTML=`<i style="color:${col}">${ic}</i>${esc(k)}`;
+      if(act>=0&&tabs[act].path===c.__f)r.classList.add('on');r.onclick=()=>openFile(c.__f);out.append(r)}
+    else{const o=tog.has(id)?tog.get(id):d===0;r.innerHTML=`<i>${o?'▾':'▸'}</i>${esc(k)}`;r.onclick=()=>{tog.set(id,!o);drawTree()};out.append(r);if(o)walk(c,d+1,id)}})})(t,0,'')}
+async function refresh(){files=await api('/api/files');
+  for(const t of tabs)if(!t.dirty){const r=await api('/api/file?p='+encodeURIComponent(t.path));if(r.content!=null)t.text=r.content}
+  if(act>=0){$('ed').value=tabs[act].text;paint()}drawTree()}
+
+/* terminal */
+const term=t=>{$('term').textContent+=t;$('term').scrollTop=1e9};
+$('cmd').onkeydown=async e=>{if(e.key!=='Enter'||!$('cmd').value)return;const c=$('cmd').value;$('cmd').value='';
+  term(`PS ${root}> ${c}\n`);term((await api('/api/term',{command:c})).out+'\n');refresh()};
+
+/* agent */
+function pick(){const p=$('prov').value;$('model').innerHTML=M[p].map(([n,v])=>`<option value="${v}">${n}</option>`).join('')+'<option value="__c">Custom model…</option>';$('eff').style.display=p==='claude'?'':'none'}
+$('model').onchange=e=>{if(e.target.value==='__c'){const v=prompt('Model name:');if(v){e.target.insertBefore(new Option(v,v),e.target.lastChild);e.target.value=v}else e.target.selectedIndex=0}};
+function fit(){const q=$('q');q.style.height='auto';q.style.height=Math.min(q.scrollHeight,160)+'px'}
+function msg(cls,html){const d=document.createElement('div');d.className=cls;d.innerHTML=html;$('msgs').append(d);$('msgs').scrollTop=1e9;return d}
+function newChat(){hist=[];$('msgs').innerHTML='';$('ctitle').textContent='New chat'}
+$('q').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask()}};
+async function ask(){const q=$('q').value.trim();if(!q)return;$('q').value='';fit();
+  if(!hist.length)$('ctitle').textContent=q.slice(0,40);
+  msg('ub',esc(q));hist.push({role:'user',text:q});const w=msg('mu','Working…'),t0=Date.now();
+  try{const r=await api('/api/chat',{provider:$('prov').value,model:$('model').value,allow:$('allow').checked,effort:$('eff').value,hist});
+    if(r.error)throw Error(r.error);w.remove();
+    if(r.steps.length)msg('mu',`<details><summary>Worked for ${Math.round((Date.now()-t0)/1000)}s</summary>${r.steps.map(x=>`<div class="st">${esc(x)}</div>`).join('')}</details>`);
+    msg('am',esc(r.reply));hist.push({role:'assistant',text:r.reply});
+    if(r.changed.length){const n=r.changed.length,a=r.changed.reduce((x,c)=>x+c.add,0),d=r.changed.reduce((x,c)=>x+c.del,0);
+      const c=msg('card',`<details><summary>${n} file${n>1?'s':''} changed <em class="g">+${a}</em> <em class="d">-${d}</em></summary>${r.changed.map((x,i)=>`<div class="cf" data-i="${i}">${esc(x.path)} <em class="g">+${x.add}</em> <em class="d">-${x.del}</em></div>`).join('')}</details><button class="rev">Review</button>`);
+      c.querySelectorAll('.cf').forEach(e=>e.onclick=()=>openFile(r.changed[e.dataset.i].path));
+      c.querySelector('.rev').onclick=()=>openFile(r.changed[0].path)}
+    await refresh()}
+  catch(e){w.remove();hist.pop();msg('mu err','Error: '+esc(e.message))}}
+
+/* folder picker */
+function openPicker(){$('dlg').showModal();go(dcur)}
+async function go(p){const r=await api('/api/dirs?p='+encodeURIComponent(p||''));
+  if(r.error){$('dpath').textContent=r.error;return}
+  dcur=r.path;$('dpath').textContent=r.path;$('dinp').value=r.path;$('dlist').innerHTML='';
+  [{name:'.. (up one level)',path:r.parent},...r.dirs].forEach(x=>{const d=document.createElement('div');d.textContent=x.name;d.onclick=()=>go(x.path);$('dlist').append(d)})}
+async function info(){const r=await api('/api/info'),n=r.root.split(/[\\/]/).filter(Boolean).pop()||r.root;
+  root=r.root;dcur=r.root;$('sbroot').textContent=n;$('sbroot').title=r.root;$('title').textContent=n+' - Multi-AI Studio';$('ps').textContent='PS '+r.root+'>'}
+async function choose(){const r=await api('/api/open',{path:dcur});if(r.error){$('dpath').textContent=r.error;return}
+  $('dlg').close();tabs=[];tog.clear();newChat();focus(-1);await info();await refresh()}
+
+/* resizable panels */
+const setV=(v,px)=>document.documentElement.style.setProperty(v,px+'px');
+function drag(id,fn){$(id).onmousedown=e=>{e.preventDefault();document.body.classList.add('dragging');
+  const up=()=>{document.removeEventListener('mousemove',fn);document.removeEventListener('mouseup',up);document.body.classList.remove('dragging')};
+  document.addEventListener('mousemove',fn);document.addEventListener('mouseup',up)}}
+drag('g1',e=>setV('--ew',Math.max(140,Math.min(e.clientX,600))));
+drag('g2',e=>setV('--aw',Math.max(260,Math.min(innerWidth-e.clientX,900))));
+drag('g3',e=>setV('--phh',Math.max(80,Math.min(innerHeight-22-e.clientY,innerHeight-200))));
+pick();focus(-1);setAuto(auto);info().then(refresh);
+</script>
